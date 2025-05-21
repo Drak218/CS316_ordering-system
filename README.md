@@ -71,10 +71,10 @@ Backend (Laravel): http://localhost:8000
 
 👤 Sample users:
 
-id	    name	            email	                  password
-4	  Shikamaru Nara	   nara@gmail.com	            temari123
-5	  eman briones	    emanbrioness@gmail.com	     123123
-6	  Eman Briones	    emanbriones@gmail.com	      123123qweqwe
+- id	    name	            email	                  password
+- 4	  Shikamaru Nara	   nara@gmail.com	            temari123
+- 5	  eman briones	    emanbrioness@gmail.com	     123123
+- 6	  Eman Briones	    emanbriones@gmail.com	      123123qweqwe
 
 📌 Notes
 
