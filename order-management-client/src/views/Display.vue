@@ -5,7 +5,7 @@
     <input
       v-model="searchQuery"
       type="text"
-      placeholder="Search by customer name..."
+      placeholder="Search by customer name,product name, city..."
       class="mb-6 p-2 border border-gray-300 rounded w-72 max-w-full search-bar"
     />
 
@@ -19,6 +19,7 @@
             <th>Quantity</th>
             <th>City</th>
             <th>Total</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -29,6 +30,7 @@
             <td>{{ order.quantity }}</td>
             <td>{{ order.city }}</td>
             <td>₱{{ parseFloat(order.total).toFixed(2) }}</td>
+            <td>{{ order.date }}</td>
           </tr>
         </tbody>
       </table>
@@ -37,6 +39,7 @@
     <div v-if="filteredOrders.length === 0" class="mt-4 text-gray-500">
       No matching orders found.
     </div>
+
     <br>
     <button @click="downloadPDF" class="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 download">
       Download PDF
@@ -52,8 +55,9 @@ import 'jspdf-autotable'
 
 const orders = ref([])
 const searchQuery = ref('')
+const startDate = ref('')
+const endDate = ref('')
 
-// Fetch orders from backend
 const fetchOrders = async () => {
   try {
     const response = await axios.get('http://localhost:8000/api/orders')
@@ -66,11 +70,31 @@ const fetchOrders = async () => {
 onMounted(fetchOrders)
 
 const filteredOrders = computed(() => {
-  return orders.value.filter(order =>
-    order.customer_name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  return orders.value.filter(order => {
+    const search = searchQuery.value.toLowerCase()
+    const customer = order.customer_name.toLowerCase()
+    const city = order.city.toLowerCase()
+    const product = order.product_name.toLowerCase()
+
+    // Check if search query matches any of the fields
+    const textMatch = 
+      customer.includes(search) ||
+      city.includes(search) ||
+      product.includes(search)
+    
+    const orderDate = new Date(order.date)
+    const start = startDate.value ? new Date(startDate.value) : null
+    const end = endDate.value ? new Date(endDate.value) : null
+
+    const dateMatch =
+      (!start || orderDate >= start) &&
+      (!end || orderDate <= end)
+
+    return textMatch && dateMatch
+  })
 })
 
+// Download PDF code remains the same...
 const downloadPDF = () => {
   const doc = new jsPDF()
 
@@ -81,6 +105,7 @@ const downloadPDF = () => {
     { header: 'Quantity', dataKey: 'quantity' },
     { header: 'City', dataKey: 'city' },
     { header: 'Total', dataKey: 'total' },
+    { header: 'Date', dataKey: 'date' },
   ]
 
   const rows = filteredOrders.value.map(order => ({
@@ -89,7 +114,8 @@ const downloadPDF = () => {
     product_name: order.product_name,
     quantity: order.quantity,
     city: order.city,
-    total: `₱${parseFloat(order.total).toFixed(2)}`
+    total: `₱${parseFloat(order.total).toFixed(2)}`,
+    date: order.date
   }))
 
   doc.autoTable({
@@ -105,14 +131,16 @@ const downloadPDF = () => {
 }
 </script>
 
+
 <style scoped>
 .search-bar{
     margin: 2%;
     height:5vh;
     width: 40%;
 }
+
 .download {
-  background-color: #2563eb; /* Tailwind bg-blue-600 */
+  background-color: #2563eb;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
@@ -122,11 +150,10 @@ const downloadPDF = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh; /* full viewport height for vertical centering */
+  min-height: 100vh;
   padding: 1rem;
   box-sizing: border-box;
 }
-
 .orders-table {
   width: 100%;
   border-collapse: collapse;
@@ -134,21 +161,17 @@ const downloadPDF = () => {
   color: #424874;
   font-size: 0.95rem;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-  max-width: 100%; /* prevent overflow */
 }
-
 .orders-table th,
 .orders-table td {
   border: 1px solid #DCD6F7;
   padding: 0.75rem 1rem;
   text-align: center;
 }
-
 .orders-table th {
   background-color: #A6B1E1;
   color: white;
 }
-
 @media (max-width: 768px) {
   .orders-table {
     font-size: 0.85rem;
