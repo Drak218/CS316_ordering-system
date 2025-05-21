@@ -28,7 +28,7 @@ Project Setup
 
 ###1. Clone the Repository
 ```bash
-    git clone https://github.com/Drak218/ABC_ordering_system.git
+    git clone https://github.com/Drak218/CS316_ordering-system.git
     cd ABC_ordering_system
 ```
 ###2. Backend Setup (Laravel)
